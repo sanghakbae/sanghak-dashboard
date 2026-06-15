@@ -238,13 +238,14 @@ select:focus { border-color: var(--accent); }
 }
 
 .card-desc {
-  margin: 10px 0 12px;
+  margin: 6px 0 8px;
   color: var(--muted);
   font-size: 14px;
-  min-height: 40px;
+  line-height: 1.4;
+  min-height: 32px;
 }
 
-.topics { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.topics { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 
 .topic {
   font-size: 11px;
@@ -260,7 +261,7 @@ select:focus { border-color: var(--accent); }
   align-items: center;
   gap: 14px;
   font-size: 12.5px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
