@@ -7,7 +7,7 @@ const ViewerContext = createContext(() => {})
 const GH_USER = 'sanghakbae'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 // 목록에서 숨길 리포
-const EXCLUDE = new Set(['sanghak-dashboard', 'muhayu'])
+const EXCLUDE = new Set(['sanghak-dashboard', 'muhayu', 'zeterbae'])
 
 // GitHub 공식 언어 색상 (자주 쓰는 것만)
 const LANG_COLORS = {
