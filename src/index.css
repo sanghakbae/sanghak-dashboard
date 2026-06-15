@@ -11,6 +11,12 @@
   --danger: #f87171;
   --radius: 14px;
   --maxw: 100%;
+  /* 잔디 단계별 색 */
+  --lvl0: #1c2533;
+  --lvl1: #0e4429;
+  --lvl2: #006d32;
+  --lvl3: #26a641;
+  --lvl4: #39d353;
 }
 
 * { box-sizing: border-box; }
@@ -279,21 +285,99 @@ select:focus { border-color: var(--accent); }
 .notice.error { border-color: rgba(248, 113, 113, 0.4); }
 .notice.error p:first-child { color: var(--danger); font-weight: 600; }
 
+/* 패널 (잔디 등 공용 박스) */
+.panel {
+  margin-top: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.panel-title {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.contrib-total { color: var(--text); font-weight: 700; }
+
+/* 잔디 그래프 */
+.contrib-scroll { overflow-x: auto; }
+.contrib-inner { display: inline-block; min-width: max-content; }
+
+.contrib-months {
+  display: flex;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.contrib-month { flex: 0 0 auto; }
+
+.contrib-body { display: flex; }
+
+.contrib-days {
+  display: grid;
+  grid-template-rows: repeat(7, calc(var(--cell) + var(--gap)));
+  font-size: 10px;
+  color: var(--muted);
+  width: 30px;
+  align-items: center;
+}
+
+.contrib-grid { display: flex; gap: var(--gap); }
+.contrib-week { display: flex; flex-direction: column; gap: var(--gap); }
+
+.contrib-cell {
+  width: var(--cell, 12px);
+  height: var(--cell, 12px);
+  border-radius: 3px;
+  background: var(--lvl0);
+  display: inline-block;
+}
+.contrib-cell.lvl-0 { background: var(--lvl0); }
+.contrib-cell.lvl-1 { background: var(--lvl1); }
+.contrib-cell.lvl-2 { background: var(--lvl2); }
+.contrib-cell.lvl-3 { background: var(--lvl3); }
+.contrib-cell.lvl-4 { background: var(--lvl4); }
+
+.contrib-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.contrib-legend .contrib-cell { --cell: 11px; }
+
 /* 푸터 */
 .foot {
   display: flex;
   justify-content: space-between;
-  margin-top: 40px;
-  padding-top: 18px;
+  max-width: var(--maxw);
+  margin: 32px auto 0;
+  padding: 18px clamp(16px, 4vw, 56px) 40px;
   border-top: 1px solid var(--border);
   font-size: 13px;
   color: var(--muted);
 }
 
-/* 반응형 */
-@media (max-width: 640px) {
-  .hero { flex-direction: column; text-align: center; gap: 14px; }
-  .hero-tags { justify-content: center; }
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  .hero-name { font-size: 24px; }
+/* 모바일 전용 히어로 */
+.hero-m {
+  flex-direction: column;
+  text-align: center;
+  gap: 12px;
+  padding: 22px 18px;
 }
+.hero-m .hero-tags { justify-content: center; }
+
+/* 모바일 페이지 */
+.page-mobile .stats { grid-template-columns: repeat(2, 1fr); }
+.page-mobile .hero-name { font-size: 23px; }
+.page-mobile .toolbar { flex-direction: column; }
+.page-mobile .filters { width: 100%; }
+.page-mobile .filters select { flex: 1; }
+.page-mobile .grid { grid-template-columns: 1fr; }
+.page-mobile .card-desc { min-height: 0; }
