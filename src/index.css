@@ -420,9 +420,13 @@ select:focus { border-color: var(--accent); }
 }
 
 /* 푸터 */
+.foot-visits { color: var(--text); font-variant-numeric: tabular-nums; }
+
 .foot {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   max-width: var(--maxw);
   margin: 32px auto 0;
   padding: 18px clamp(16px, 4vw, 56px) 40px;

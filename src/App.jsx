@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useVisitors } from './useVisitors.js'
 
 const GH_USER = 'sanghakbae'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -361,6 +362,7 @@ function MobileDashboard(props) {
 export default function App() {
   const { user, repos, contrib, state, error } = useGitHub()
   const isMobile = useIsMobile()
+  const visitors = useVisitors()
 
   const [query, setQuery] = useState('')
   const [lang, setLang] = useState('전체')
@@ -434,6 +436,7 @@ export default function App() {
       {isMobile ? <MobileDashboard {...shared} /> : <DesktopDashboard {...shared} />}
       <footer className="foot">
         <span>© {new Date().getFullYear()} sanghak.kr</span>
+        <span className="foot-visits">👁 방문 {visitors != null ? visitors.toLocaleString() : '—'}</span>
         <span className="muted">{isMobile ? '모바일' : 'PC'} · 데이터: GitHub API</span>
       </footer>
     </>
