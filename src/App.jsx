@@ -64,7 +64,8 @@ function useGitHub() {
 
   useEffect(() => {
     let alive = true
-    async function load() {
+    // background=true면 스켈레톤/에러로 전환하지 않고 조용히 갱신
+    async function load(background = false) {
       try {
         const [u, r] = await Promise.all([
           fetch(`https://api.github.com/users/${GH_USER}`),
@@ -87,13 +88,16 @@ function useGitHub() {
         setData({ user, repos, contrib })
         setState('ready')
       } catch (e) {
-        if (!alive) return
+        if (!alive || background) return // 백그라운드 실패는 기존 데이터 유지
         setError(e.message || '데이터를 불러오지 못했습니다.')
         setState('error')
       }
     }
     load()
-    return () => { alive = false }
+    // 12시간마다 자동 새로고침 (페이지를 열어둔 채로도 최신 반영)
+    const HALF_DAY = 12 * 60 * 60 * 1000
+    const timer = setInterval(() => load(true), HALF_DAY)
+    return () => { alive = false; clearInterval(timer) }
   }, [])
 
   return { ...data, state, error }
