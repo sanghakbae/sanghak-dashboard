@@ -213,23 +213,31 @@ function LangDot({ lang }) {
   )
 }
 
+// 'auth-required' 토픽이 있으면 로그인 필요 서비스로 표시
+const AUTH_TOPIC = 'auth-required'
+
 function ProjectCard({ repo }) {
   const live = repo.homepage && repo.homepage.startsWith('http') ? repo.homepage : null
   const openViewer = useContext(ViewerContext)
+  const needsAuth = (repo.topics || []).includes(AUTH_TOPIC)
+  const topics = (repo.topics || []).filter((t) => t !== AUTH_TOPIC)
   return (
     <article className="card">
       <div className="card-top">
         <h3 className="card-title">
           <a href={repo.html_url} target="_blank" rel="noreferrer">{repo.name}</a>
         </h3>
-        {live && <span className="badge-live">LIVE</span>}
+        <div className="card-badges">
+          {needsAuth && <span className="badge-auth" title="로그인이 필요한 서비스">🔒 인증 필요</span>}
+          {live && <span className="badge-live">LIVE</span>}
+        </div>
       </div>
 
       <p className="card-desc">{repo.description || '설명이 없습니다.'}</p>
 
-      {repo.topics?.length > 0 && (
+      {topics.length > 0 && (
         <div className="topics">
-          {repo.topics.slice(0, 4).map((t) => (
+          {topics.slice(0, 4).map((t) => (
             <span key={t} className="topic">#{t}</span>
           ))}
         </div>
