@@ -521,7 +521,14 @@ select:focus { border-color: var(--accent); }
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.modal-title { font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.modal-title {
+  font-weight: 700;
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .modal-url {
   color: var(--muted);
   font-size: 12.5px;
@@ -560,9 +567,8 @@ select:focus { border-color: var(--accent); }
 }
 
 @media (max-width: 768px) {
-  .modal { width: 100vw; height: 100vh; border-radius: 0; }
+  .modal { width: 80vw; height: 80vh; }
   .modal-url { display: none; }
-  .modal-backdrop { padding: 0; }
 }
 
 /* 모바일 전용 히어로 */
