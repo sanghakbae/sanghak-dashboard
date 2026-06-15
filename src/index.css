@@ -1,19 +1,20 @@
 :root {
-  --bg: #0a0e17;
-  --bg-soft: #11161f;
-  --panel: #141b26;
-  --panel-2: #182230;
-  --border: #232d3b;
+  /* 네온 테마 고정 */
+  --bg: #08060f;
+  --bg-soft: #0f0a1a;
+  --panel: #130d22;
+  --panel-2: #1a1230;
+  --border: #2e2447;
   --text: #e6edf3;
   --muted: #8b98a9;
-  --accent: #38bdf8;
-  --accent-2: #34d399;
-  --accent-3: #a78bfa;
-  --accent-4: #f472b6;
+  --accent: #22d3ee;
+  --accent-2: #f472b6;
+  --accent-3: #e879f9;
+  --accent-4: #22d3ee;
   --danger: #f87171;
-  --radius: 14px;
-  --card-radius: 16px;
-  --card-bg: linear-gradient(180deg, #19222f 0%, #121925 100%);
+  --radius: 10px;
+  --card-radius: 10px;
+  --card-bg: linear-gradient(180deg, #18102e 0%, #0f0a1c 100%);
   --maxw: 100%;
   /* 잔디 단계별 색 */
   --lvl0: #1c2533;
@@ -54,12 +55,12 @@ a { color: inherit; text-decoration: none; }
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(1000px 560px at 82% -12%, rgba(56, 189, 248, 0.20), transparent 60%),
-    radial-gradient(820px 480px at 110% 30%, rgba(167, 139, 250, 0.18), transparent 60%),
-    radial-gradient(760px 440px at -8% 4%, rgba(52, 211, 153, 0.16), transparent 58%),
-    radial-gradient(680px 420px at 18% 116%, rgba(244, 114, 182, 0.12), transparent 60%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    radial-gradient(1000px 560px at 82% -12%, rgba(34, 211, 238, 0.26), transparent 60%),
+    radial-gradient(860px 500px at 112% 34%, rgba(232, 121, 249, 0.22), transparent 60%),
+    radial-gradient(760px 440px at -8% 6%, rgba(244, 114, 182, 0.20), transparent 60%),
+    radial-gradient(680px 420px at 20% 118%, rgba(34, 211, 238, 0.16), transparent 60%),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: auto, auto, auto, auto, 40px 40px, 40px 40px;
 }
 
@@ -581,152 +582,3 @@ select:focus { border-color: var(--accent); }
 .page-mobile .filters select { flex: 1; }
 .page-mobile .grid { grid-template-columns: minmax(0, 1fr); }
 .page-mobile .card-desc { min-height: 0; }
-
-/* ───────────── 테마 시안 전환 바 ───────────── */
-.theme-bar {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 14px clamp(16px, 4vw, 56px) 0;
-}
-.theme-label { font-size: 12px; color: var(--muted); margin-right: 2px; }
-.theme-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--muted);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-}
-.theme-btn:hover { color: var(--text); border-color: var(--accent); }
-.theme-btn.active {
-  color: var(--text);
-  border-color: transparent;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 1px var(--accent), 0 4px 14px -6px var(--accent);
-}
-.theme-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-.dot-aurora  { background: linear-gradient(135deg, #38bdf8, #a78bfa); }
-.dot-neon    { background: linear-gradient(135deg, #22d3ee, #f472b6); }
-.dot-emerald { background: linear-gradient(135deg, #34d399, #22d3ee); }
-.dot-sunset  { background: linear-gradient(135deg, #fb923c, #f472b6); }
-.dot-slate   { background: linear-gradient(135deg, #64748b, #94a3b8); }
-
-/* ───────────── 테마별 팔레트 + 배경 글로우 ───────────── */
-/* 네온 — 어둡고 쨍한 보라/시안, 각진 카드 */
-[data-theme="neon"] {
-  --accent: #22d3ee;
-  --accent-2: #f472b6;
-  --accent-3: #e879f9;
-  --accent-4: #22d3ee;
-  --bg: #08060f;
-  --bg-soft: #0f0a1a;
-  --panel: #130d22;
-  --panel-2: #1a1230;
-  --border: #2e2447;
-  --radius: 10px;
-  --card-radius: 10px;
-  --card-bg: linear-gradient(180deg, #18102e 0%, #0f0a1c 100%);
-}
-[data-theme="neon"] .bg-grid {
-  background:
-    radial-gradient(1000px 560px at 82% -12%, rgba(34, 211, 238, 0.26), transparent 60%),
-    radial-gradient(860px 500px at 112% 34%, rgba(232, 121, 249, 0.22), transparent 60%),
-    radial-gradient(760px 440px at -8% 6%, rgba(244, 114, 182, 0.20), transparent 60%),
-    radial-gradient(680px 420px at 20% 118%, rgba(34, 211, 238, 0.16), transparent 60%),
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: auto, auto, auto, auto, 40px 40px, 40px 40px;
-}
-
-/* 에메랄드 — 짙은 초록 틴트, 둥근 카드 */
-[data-theme="emerald"] {
-  --accent: #34d399;
-  --accent-2: #22d3ee;
-  --accent-3: #2dd4bf;
-  --accent-4: #a3e635;
-  --bg: #07120e;
-  --bg-soft: #0b1a15;
-  --panel: #0f1f1a;
-  --panel-2: #143028;
-  --border: #1f3a32;
-  --radius: 18px;
-  --card-radius: 20px;
-  --card-bg: linear-gradient(180deg, #102a22 0%, #0a1c17 100%);
-}
-[data-theme="emerald"] .bg-grid {
-  background:
-    radial-gradient(1000px 560px at 82% -12%, rgba(52, 211, 153, 0.22), transparent 60%),
-    radial-gradient(860px 500px at 112% 34%, rgba(45, 212, 191, 0.20), transparent 60%),
-    radial-gradient(760px 440px at -8% 6%, rgba(34, 211, 238, 0.16), transparent 60%),
-    radial-gradient(680px 420px at 20% 118%, rgba(163, 230, 53, 0.12), transparent 60%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: auto, auto, auto, auto, 40px 40px, 40px 40px;
-}
-
-/* 선셋 — 따뜻한 톤, 둥근 카드 */
-[data-theme="sunset"] {
-  --accent: #fb923c;
-  --accent-2: #f472b6;
-  --accent-3: #fbbf24;
-  --accent-4: #f87171;
-  --bg: #140c0f;
-  --bg-soft: #1d1216;
-  --panel: #21161a;
-  --panel-2: #2c1d22;
-  --border: #3a2630;
-  --radius: 16px;
-  --card-radius: 18px;
-  --card-bg: linear-gradient(180deg, #2a1820 0%, #1c1014 100%);
-}
-[data-theme="sunset"] .bg-grid {
-  background:
-    radial-gradient(1000px 560px at 82% -12%, rgba(251, 146, 60, 0.22), transparent 60%),
-    radial-gradient(860px 500px at 112% 34%, rgba(244, 114, 182, 0.20), transparent 60%),
-    radial-gradient(760px 440px at -8% 6%, rgba(251, 191, 36, 0.16), transparent 60%),
-    radial-gradient(680px 420px at 20% 118%, rgba(167, 139, 250, 0.14), transparent 60%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: auto, auto, auto, auto, 40px 40px, 40px 40px;
-}
-
-/* 미니멀 — 밝은 슬레이트, 평평하고 각진 카드 */
-[data-theme="slate"] {
-  --accent: #38bdf8;
-  --accent-2: #34d399;
-  --accent-3: #818cf8;
-  --accent-4: #64748b;
-  --bg: #0e131b;
-  --bg-soft: #131923;
-  --panel: #172029;
-  --panel-2: #1c2733;
-  --border: #2a3543;
-  --radius: 10px;
-  --card-radius: 10px;
-  --card-bg: #172029;
-}
-[data-theme="slate"] .bg-grid {
-  background:
-    radial-gradient(900px 500px at 80% -10%, rgba(56, 189, 248, 0.08), transparent 60%),
-    radial-gradient(700px 400px at 0% 0%, rgba(100, 116, 139, 0.06), transparent 55%),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: auto, auto, 40px 40px, 40px 40px;
-}
