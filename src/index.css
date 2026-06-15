@@ -398,8 +398,8 @@ select:focus { border-color: var(--accent); }
 }
 .contrib-total { color: var(--text); font-weight: 700; }
 
-/* 잔디 그래프 — 가로 100% 가변 */
-.contrib-inner { width: 100%; }
+/* 잔디 그래프 — 셀 작게(높이 축소), 중앙 정렬 */
+.contrib-inner { width: 100%; max-width: 720px; margin: 0 auto; }
 
 .contrib-months {
   display: flex;
