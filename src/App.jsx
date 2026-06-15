@@ -301,11 +301,21 @@ function Grid({ repos }) {
 
 /* ───────────────────────── 레이아웃: PC / 모바일 ───────────────────────── */
 
+function VisitBadge({ visitors }) {
+  return (
+    <span className="hero-visits" title="누적 방문 수">
+      <span className="hero-visits-label">방문</span>
+      <span className="hero-visits-num">{visitors != null ? visitors.toLocaleString() : '—'}</span>
+    </span>
+  )
+}
+
 function DesktopDashboard(props) {
-  const { user, contrib, stats, filtered, toolbar } = props
+  const { user, contrib, stats, filtered, toolbar, visitors } = props
   return (
     <div className="page page-desktop">
       <header className="hero">
+        <VisitBadge visitors={visitors} />
         {user && <img className="avatar" src={user.avatar_url} alt={user.name || GH_USER} />}
         <div className="hero-body">
           <h1 className="hero-name">{user?.name || 'Zeter Bae'}</h1>
@@ -331,10 +341,11 @@ function DesktopDashboard(props) {
 }
 
 function MobileDashboard(props) {
-  const { user, contrib, stats, filtered, toolbar } = props
+  const { user, contrib, stats, filtered, toolbar, visitors } = props
   return (
     <div className="page page-mobile">
       <header className="hero hero-m">
+        <VisitBadge visitors={visitors} />
         {user && <img className="avatar" src={user.avatar_url} alt={user.name || GH_USER} />}
         <h1 className="hero-name">{user?.name || 'Zeter Bae'}</h1>
         <p className="hero-bio">
@@ -428,7 +439,7 @@ export default function App() {
     )
   }
 
-  const shared = { user, contrib, stats, filtered, toolbar }
+  const shared = { user, contrib, stats, filtered, toolbar, visitors }
 
   return (
     <>
@@ -436,7 +447,6 @@ export default function App() {
       {isMobile ? <MobileDashboard {...shared} /> : <DesktopDashboard {...shared} />}
       <footer className="foot">
         <span>© {new Date().getFullYear()} sanghak.kr</span>
-        <span className="foot-visits">👁 방문 {visitors != null ? visitors.toLocaleString() : '—'}</span>
         <span className="muted">{isMobile ? '모바일' : 'PC'} · 데이터: GitHub API</span>
       </footer>
     </>
