@@ -141,9 +141,13 @@ function monthSpans(weeks) {
   return spans
 }
 
+// 최근 약 6개월(26주)만 표시
+const RECENT_DAYS = 26 * 7
+
 function ContributionGraph({ contrib, compact = false }) {
-  const days = contrib?.contributions || []
-  const total = contrib?.total?.lastYear ?? 0
+  const allDays = contrib?.contributions || []
+  const days = useMemo(() => allDays.slice(-RECENT_DAYS), [allDays])
+  const total = useMemo(() => days.reduce((s, d) => s + (d.count || 0), 0), [days])
   const weeks = useMemo(() => buildWeeks(days), [days])
   const spans = useMemo(() => monthSpans(weeks), [weeks])
 
@@ -152,7 +156,7 @@ function ContributionGraph({ contrib, compact = false }) {
   return (
     <section className="panel contrib">
       <h2 className="panel-title">
-        <span className="contrib-total">{total}</span> contributions in the last year
+        최근 6개월 <span className="contrib-total">{total}</span> contributions
       </h2>
 
       <div className="contrib-inner">
@@ -419,6 +423,34 @@ function SiteModal({ site, onClose }) {
   )
 }
 
+/* ───────────────────────── 테마 시안 전환 ───────────────────────── */
+
+const THEMES = [
+  { id: 'aurora', label: '오로라' },
+  { id: 'neon', label: '네온' },
+  { id: 'emerald', label: '에메랄드' },
+  { id: 'sunset', label: '선셋' },
+  { id: 'slate', label: '미니멀' },
+]
+
+function ThemeBar({ theme, setTheme }) {
+  return (
+    <div className="theme-bar">
+      <span className="theme-label">테마</span>
+      {THEMES.map((t) => (
+        <button
+          key={t.id}
+          className={`theme-btn${theme === t.id ? ' active' : ''}`}
+          onClick={() => setTheme(t.id)}
+        >
+          <span className={`theme-dot dot-${t.id}`} />
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /* ───────────────────────── App ───────────────────────── */
 
 export default function App() {
@@ -430,6 +462,14 @@ export default function App() {
   const [lang, setLang] = useState('전체')
   const [sort, setSort] = useState('updated')
   const [viewer, setViewer] = useState(null) // 미리보기 모달 {url, name}
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('theme') || 'aurora' } catch { return 'aurora' }
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    try { localStorage.setItem('theme', theme) } catch { /* noop */ }
+  }, [theme])
 
   const languages = useMemo(() => {
     const set = new Set(repos.map((r) => r.language).filter(Boolean))
@@ -496,6 +536,7 @@ export default function App() {
   return (
     <ViewerContext.Provider value={setViewer}>
       <div className="bg-grid" aria-hidden />
+      <ThemeBar theme={theme} setTheme={setTheme} />
       {isMobile ? <MobileDashboard {...shared} /> : <DesktopDashboard {...shared} />}
       <footer className="foot">
         <span>© {new Date().getFullYear()} sanghak.kr</span>
