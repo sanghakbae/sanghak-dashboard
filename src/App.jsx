@@ -141,13 +141,9 @@ function monthSpans(weeks) {
   return spans
 }
 
-// 최근 약 6개월(26주)만 표시
-const RECENT_DAYS = 26 * 7
-
 function ContributionGraph({ contrib, compact = false }) {
-  const allDays = contrib?.contributions || []
-  const days = useMemo(() => allDays.slice(-RECENT_DAYS), [allDays])
-  const total = useMemo(() => days.reduce((s, d) => s + (d.count || 0), 0), [days])
+  const days = contrib?.contributions || []
+  const total = contrib?.total?.lastYear ?? 0
   const weeks = useMemo(() => buildWeeks(days), [days])
   const spans = useMemo(() => monthSpans(weeks), [weeks])
 
@@ -156,7 +152,7 @@ function ContributionGraph({ contrib, compact = false }) {
   return (
     <section className="panel contrib">
       <h2 className="panel-title">
-        최근 6개월 <span className="contrib-total">{total}</span> contributions
+        <span className="contrib-total">{total}</span> contributions in the last year
       </h2>
 
       <div className="contrib-inner">
