@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useVisitors } from './useVisitors.js'
+
+// 바로가기 → 사이트 미리보기 모달 열기 핸들러
+const ViewerContext = createContext(() => {})
 
 const GH_USER = 'sanghakbae'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -212,6 +215,7 @@ function LangDot({ lang }) {
 
 function ProjectCard({ repo }) {
   const live = repo.homepage && repo.homepage.startsWith('http') ? repo.homepage : null
+  const openViewer = useContext(ViewerContext)
   return (
     <article className="card">
       <div className="card-top">
@@ -239,7 +243,11 @@ function ProjectCard({ repo }) {
 
       <div className="card-actions">
         {live && (
-          <a className="btn btn-primary" href={live} target="_blank" rel="noreferrer">
+          <a
+            className="btn btn-primary"
+            href={live}
+            onClick={(e) => { e.preventDefault(); openViewer({ url: live, name: repo.name }) }}
+          >
             바로가기 ↗
           </a>
         )}
@@ -368,6 +376,41 @@ function MobileDashboard(props) {
   )
 }
 
+/* ───────────────────────── 사이트 미리보기 모달 ───────────────────────── */
+
+function SiteModal({ site, onClose }) {
+  useEffect(() => {
+    if (!site) return // 열렸을 때만 ESC 리스너 + 스크롤 잠금
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [site, onClose])
+
+  if (!site) return null
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-bar">
+          <span className="modal-title">{site.name}</span>
+          <span className="modal-url">{site.url}</span>
+          <div className="modal-actions">
+            <a className="modal-btn modal-open" href={site.url} target="_blank" rel="noreferrer">
+              사이트 바로가기 ↗
+            </a>
+            <button className="modal-btn modal-close" onClick={onClose} aria-label="닫기">✕</button>
+          </div>
+        </div>
+        <iframe className="modal-frame" src={site.url} title={site.name} loading="lazy" />
+      </div>
+    </div>
+  )
+}
+
 /* ───────────────────────── App ───────────────────────── */
 
 export default function App() {
@@ -378,6 +421,7 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [lang, setLang] = useState('전체')
   const [sort, setSort] = useState('updated')
+  const [viewer, setViewer] = useState(null) // 미리보기 모달 {url, name}
 
   const languages = useMemo(() => {
     const set = new Set(repos.map((r) => r.language).filter(Boolean))
@@ -442,13 +486,14 @@ export default function App() {
   const shared = { user, contrib, stats, filtered, toolbar, visitors }
 
   return (
-    <>
+    <ViewerContext.Provider value={setViewer}>
       <div className="bg-grid" aria-hidden />
       {isMobile ? <MobileDashboard {...shared} /> : <DesktopDashboard {...shared} />}
       <footer className="foot">
         <span>© {new Date().getFullYear()} sanghak.kr</span>
         <span className="muted">{isMobile ? '모바일' : 'PC'} · 데이터: GitHub API</span>
       </footer>
-    </>
+      <SiteModal site={viewer} onClose={() => setViewer(null)} />
+    </ViewerContext.Provider>
   )
 }
