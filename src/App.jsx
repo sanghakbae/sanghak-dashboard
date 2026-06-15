@@ -98,9 +98,9 @@ function useGitHub() {
       }
     }
     load()
-    // 12시간마다 자동 새로고침 (페이지를 열어둔 채로도 최신 반영)
-    const HALF_DAY = 12 * 60 * 60 * 1000
-    const timer = setInterval(() => load(true), HALF_DAY)
+    // 3시간마다 자동 새로고침 (페이지를 열어둔 채로도 최신 반영)
+    const REFRESH_MS = 3 * 60 * 60 * 1000
+    const timer = setInterval(() => load(true), REFRESH_MS)
     return () => { alive = false; clearInterval(timer) }
   }, [])
 
@@ -216,13 +216,17 @@ function LangDot({ lang }) {
 // 'auth-required' 토픽이 있으면 로그인 필요 서비스로 표시
 const AUTH_TOPIC = 'auth-required'
 
+// 최근 3시간 내 푸시 → 네온 테두리 강조
+const FRESH_MS = 3 * 60 * 60 * 1000
+
 function ProjectCard({ repo }) {
   const live = repo.homepage && repo.homepage.startsWith('http') ? repo.homepage : null
   const openViewer = useContext(ViewerContext)
   const needsAuth = (repo.topics || []).includes(AUTH_TOPIC)
   const topics = (repo.topics || []).filter((t) => t !== AUTH_TOPIC)
+  const fresh = repo.pushed_at && Date.now() - new Date(repo.pushed_at).getTime() < FRESH_MS
   return (
-    <article className="card">
+    <article className={`card${fresh ? ' card-fresh' : ''}`}>
       <div className="card-top">
         <h3 className="card-title">
           <a href={repo.html_url} target="_blank" rel="noreferrer">{repo.name}</a>
