@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react'
+import { doc, getDoc, increment, setDoc } from 'firebase/firestore'
+import { db } from './firebase.js'
 
-// baseball 프로젝트의 Firestore를 재사용(별도 문서). 웹 API 키는 공개 가능 값.
-const PROJECT = 'baseball-93c5d'
-const API_KEY = 'AIzaSyDQ6_sGVnwGrFXLNkwuWyoCWhCsEHpln24'
-const DOC = `projects/${PROJECT}/databases/(default)/documents/meta/visitors-sanghak`
-const READ = `https://firestore.googleapis.com/v1/${DOC}?key=${API_KEY}`
-const COMMIT = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents:commit?key=${API_KEY}`
+const ref = doc(db, 'meta', 'visitors')
 
-// 페이지 로드(새로고침)당 1회만 증가. 모듈 플래그로 StrictMode 중복 호출 방지.
-let countedThisLoad = false
+// 로드(새로고침)당 1회만 증가. 모듈 플래그로 StrictMode 중복 호출 방지.
+let counted = false
 
 export function useVisitors() {
   const [count, setCount] = useState(null)
@@ -17,32 +14,17 @@ export function useVisitors() {
     let alive = true
     ;(async () => {
       try {
-        // 이미 이 로드에서 증가했으면(StrictMode 2회차) 읽기만
-        if (countedThisLoad) {
-          const d = await (await fetch(READ)).json()
-          const v = Number(d?.fields?.count?.integerValue)
-          if (alive && Number.isFinite(v)) setCount(v)
-          return
+        const shouldCount = !counted
+        const snap = await getDoc(ref) // 증분 전 서버값 읽기
+        const v = snap.data()?.count
+        if (alive && typeof v === 'number') setCount(v + (shouldCount ? 1 : 0))
+        if (shouldCount) {
+          counted = true
+          setDoc(ref, { count: increment(1), updatedAt: new Date().toISOString() }, { merge: true })
+            .catch((e) => console.warn('방문자 카운트 증가 실패:', e.message))
         }
-        countedThisLoad = true
-        // standalone transform: 다른 필드 건드리지 않고 count만 +1, 새 값 반환
-        const body = {
-          writes: [{
-            transform: {
-              document: DOC,
-              fieldTransforms: [{ fieldPath: 'count', increment: { integerValue: '1' } }],
-            },
-          }],
-        }
-        const d = await (await fetch(COMMIT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        })).json()
-        const v = Number(d?.writeResults?.[0]?.transformResults?.[0]?.integerValue)
-        if (alive && Number.isFinite(v)) setCount(v)
-      } catch {
-        /* 카운터 실패는 페이지에 영향 없음 */
+      } catch (e) {
+        console.warn('방문자 카운트 비활성:', e.message)
       }
     })()
     return () => { alive = false }

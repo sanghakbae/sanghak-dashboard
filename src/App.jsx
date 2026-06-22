@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useVisitors } from './useVisitors.js'
+import { useAuth } from './useAuth.js'
+import { isAdmin } from './firebase.js'
+import { useHiddenRepos } from './useConfig.js'
+import { logEvent } from './audit.js'
+import AdminPage from './AdminPage.jsx'
 
 // 바로가기 → 사이트 미리보기 모달 열기 핸들러
 const ViewerContext = createContext(() => {})
@@ -258,12 +263,18 @@ function ProjectCard({ repo }) {
           <a
             className="btn btn-primary"
             href={live}
-            onClick={(e) => { e.preventDefault(); openViewer({ url: live, name: repo.name }) }}
+            onClick={(e) => { e.preventDefault(); logEvent('open', repo.name); openViewer({ url: live, name: repo.name }) }}
           >
             바로가기 ↗
           </a>
         )}
-        <a className="btn btn-ghost" href={repo.html_url} target="_blank" rel="noreferrer">
+        <a
+          className="btn btn-ghost"
+          href={repo.html_url}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => logEvent('code', repo.name)}
+        >
           코드
         </a>
       </div>
@@ -321,21 +332,39 @@ function Grid({ repos }) {
 
 /* ───────────────────────── 레이아웃: PC / 모바일 ───────────────────────── */
 
-function VisitBadge({ visitors }) {
+function HeroCorner({ visitors, auth }) {
+  const { user, ready, login, logout } = auth
   return (
-    <span className="hero-visits" title="누적 방문 수">
-      <span className="hero-visits-label">방문</span>
-      <span className="hero-visits-num">{visitors != null ? visitors.toLocaleString() : '—'}</span>
-    </span>
+    <div className="hero-corner">
+      <span className="hero-visits" title="누적 방문 수">
+        <span className="hero-visits-label">방문</span>
+        <span className="hero-visits-num">{visitors != null ? visitors.toLocaleString() : '—'}</span>
+      </span>
+      {ready && (
+        user ? (
+          <div className="auth-box">
+            {isAdmin(user) && <a className="auth-btn admin" href="#admin">관리자</a>}
+            {user.photoURL
+              ? <img className="auth-avatar" src={user.photoURL} alt={user.displayName || ''} title={user.email} />
+              : <span className="auth-avatar auth-avatar-fallback" title={user.email}>{(user.email || '?')[0].toUpperCase()}</span>}
+            <button className="auth-btn" onClick={logout}>로그아웃</button>
+          </div>
+        ) : (
+          <button className="auth-btn google" onClick={login} title="Google로 로그인">
+            <span className="g-mark">G</span> 로그인
+          </button>
+        )
+      )}
+    </div>
   )
 }
 
 function DesktopDashboard(props) {
-  const { user, contrib, stats, filtered, toolbar, visitors } = props
+  const { user, contrib, stats, filtered, toolbar, visitors, auth } = props
   return (
     <div className="page page-desktop">
       <header className="hero">
-        <VisitBadge visitors={visitors} />
+        <HeroCorner visitors={visitors} auth={auth} />
         {user && <img className="avatar" src={user.avatar_url} alt={user.name || GH_USER} />}
         <div className="hero-body">
           <h1 className="hero-name">{user?.name || 'Zeter Bae'}</h1>
@@ -361,11 +390,11 @@ function DesktopDashboard(props) {
 }
 
 function MobileDashboard(props) {
-  const { user, contrib, stats, filtered, toolbar, visitors } = props
+  const { user, contrib, stats, filtered, toolbar, visitors, auth } = props
   return (
     <div className="page page-mobile">
       <header className="hero hero-m">
-        <VisitBadge visitors={visitors} />
+        <HeroCorner visitors={visitors} auth={auth} />
         {user && <img className="avatar" src={user.avatar_url} alt={user.name || GH_USER} />}
         <h1 className="hero-name">{user?.name || 'Zeter Bae'}</h1>
         <p className="hero-bio">
@@ -425,15 +454,32 @@ function SiteModal({ site, onClose }) {
 
 /* ───────────────────────── App ───────────────────────── */
 
+let visitLogged = false
+
 export default function App() {
   const { user, repos, contrib, state, error } = useGitHub()
   const isMobile = useIsMobile()
   const visitors = useVisitors()
+  const auth = useAuth()
+  const hidden = useHiddenRepos()
 
   const [query, setQuery] = useState('')
   const [lang, setLang] = useState('전체')
   const [sort, setSort] = useState('updated')
   const [viewer, setViewer] = useState(null) // 미리보기 모달 {url, name}
+  const [route, setRoute] = useState(() => (typeof location !== 'undefined' ? location.hash : ''))
+
+  useEffect(() => {
+    const onHash = () => setRoute(location.hash)
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  useEffect(() => {
+    if (visitLogged) return // 로드당 1회만 방문 기록
+    visitLogged = true
+    logEvent('visit')
+  }, [])
 
   const languages = useMemo(() => {
     const set = new Set(repos.map((r) => r.language).filter(Boolean))
@@ -448,14 +494,14 @@ export default function App() {
         r.name.toLowerCase().includes(q) ||
         (r.description || '').toLowerCase().includes(q) ||
         (r.topics || []).some((t) => t.toLowerCase().includes(q))
-      return matchQ && (lang === '전체' || r.language === lang)
+      return matchQ && (lang === '전체' || r.language === lang) && !hidden.includes(r.name)
     })
     return [...list].sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name)
       if (sort === 'stars') return b.stargazers_count - a.stargazers_count
       return new Date(b.pushed_at) - new Date(a.pushed_at)
     })
-  }, [repos, query, lang, sort])
+  }, [repos, query, lang, sort, hidden])
 
   const liveCount = useMemo(
     () => repos.filter((r) => r.homepage && r.homepage.startsWith('http')).length,
@@ -470,6 +516,33 @@ export default function App() {
   ]
 
   const toolbar = { query, setQuery, lang, setLang, sort, setSort, languages }
+
+  // 관리자 페이지 라우트 (#admin)
+  if (route === '#admin') {
+    if (!auth.ready) {
+      return <div className="page"><div className="bg-grid" aria-hidden /><p className="muted" style={{ marginTop: 40 }}>확인 중…</p></div>
+    }
+    if (!isAdmin(auth.user)) {
+      return (
+        <div className="page">
+          <div className="bg-grid" aria-hidden />
+          <div className="notice" style={{ marginTop: 40 }}>
+            <p>관리자만 접근할 수 있습니다.</p>
+            {auth.user
+              ? <p className="muted">{auth.user.email} 계정은 권한이 없습니다.</p>
+              : <p style={{ marginTop: 12 }}><button className="auth-btn google" onClick={auth.login}><span className="g-mark">G</span> Google 로그인</button></p>}
+            <p className="muted" style={{ marginTop: 12 }}><a href="#">← 대시보드로</a></p>
+          </div>
+        </div>
+      )
+    }
+    return (
+      <>
+        <div className="bg-grid" aria-hidden />
+        <AdminPage user={auth.user} onLogout={auth.logout} onExit={() => { location.hash = '' }} />
+      </>
+    )
+  }
 
   if (state === 'loading') {
     return (
@@ -495,7 +568,7 @@ export default function App() {
     )
   }
 
-  const shared = { user, contrib, stats, filtered, toolbar, visitors }
+  const shared = { user, contrib, stats, filtered, toolbar, visitors, auth }
 
   return (
     <ViewerContext.Provider value={setViewer}>

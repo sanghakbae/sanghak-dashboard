@@ -76,11 +76,18 @@ a { color: inherit; text-decoration: none; }
   border-radius: 18px;
 }
 
-/* 방문 수 — 상단 패널 우측 상단 */
-.hero-visits {
+/* 상단 우측 — 방문 수 + 로그인 */
+.hero-corner {
   position: absolute;
   top: 14px;
   right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.hero-visits {
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
@@ -90,6 +97,42 @@ a { color: inherit; text-decoration: none; }
   background: rgba(255, 255, 255, 0.03);
   font-size: 12px;
   color: var(--muted);
+}
+
+.auth-box { display: inline-flex; align-items: center; gap: 8px; }
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.auth-btn:hover { border-color: var(--accent); color: var(--accent); }
+.auth-btn.admin { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.auth-btn.google .g-mark,
+.notice .g-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  color: #4285f4;
+  font-weight: 800;
+  font-size: 11px;
+}
+.auth-avatar { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
+.auth-avatar-fallback {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--panel-2); color: var(--text); font-size: 12px; font-weight: 700;
 }
 .hero-visits-num {
   color: var(--accent);
@@ -603,3 +646,71 @@ select:focus { border-color: var(--accent); }
 .page-mobile .filters select { flex: 1; }
 .page-mobile .grid { grid-template-columns: minmax(0, 1fr); }
 .page-mobile .card-desc { min-height: 0; }
+
+/* ───────────── 관리자 페이지 ───────────── */
+.admin-page { padding-top: 24px; }
+.admin-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.admin-title { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
+.admin-sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.admin-head-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.btn-sm {
+  padding: 7px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+.admin-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.admin-h2 { margin: 0 0 4px; font-size: 16px; }
+.admin-muted { color: var(--muted); font-weight: 400; font-size: 12.5px; }
+
+.repo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.repo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-soft);
+  cursor: pointer;
+}
+.repo-name { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toggle { width: 36px; height: 20px; cursor: pointer; accent-color: var(--accent); }
+.toggle-state { font-size: 11px; font-weight: 700; width: 30px; text-align: right; }
+.toggle-state.on { color: var(--accent); }
+.toggle-state.off { color: var(--muted); }
+
+.log-scroll { overflow-x: auto; margin-top: 12px; }
+.log-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.log-table th, .log-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.log-table th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--panel); }
+.log-table .nowrap { white-space: nowrap; }
+.log-table .ua { max-width: 280px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -5,7 +5,7 @@
       "name": "sanghak-dashboard",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "autoPort": true
     }
   ]
 }
