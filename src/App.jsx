@@ -344,10 +344,7 @@ function HeroCorner({ visitors, auth }) {
         user ? (
           <div className="auth-box">
             {isAdmin(user) && <a className="auth-btn admin" href="#admin">관리자</a>}
-            {user.photoURL
-              ? <img className="auth-avatar" src={user.photoURL} alt={user.displayName || ''} title={user.email} />
-              : <span className="auth-avatar auth-avatar-fallback" title={user.email}>{(user.email || '?')[0].toUpperCase()}</span>}
-            <button className="auth-btn" onClick={logout}>로그아웃</button>
+            <button className="auth-btn" onClick={logout} title={user.email}>로그아웃</button>
           </div>
         ) : (
           <button className="auth-btn google" onClick={login} title="Google로 로그인">
@@ -364,7 +361,6 @@ function DesktopDashboard(props) {
   return (
     <div className="page page-desktop">
       <header className="hero">
-        <HeroCorner visitors={visitors} auth={auth} />
         {user && <img className="avatar" src={user.avatar_url} alt={user.name || GH_USER} />}
         <div className="hero-body">
           <h1 className="hero-name">{user?.name || 'Zeter Bae'}</h1>
@@ -379,6 +375,7 @@ function DesktopDashboard(props) {
             </a>
           </div>
         </div>
+        <HeroCorner visitors={visitors} auth={auth} />
       </header>
 
       <Stats stats={stats} />
@@ -396,6 +393,7 @@ function MobileDashboard(props) {
       <header className="hero hero-m">
         <HeroCorner visitors={visitors} auth={auth} />
         {user && <img className="avatar" src={user.avatar_url} alt={user.name || GH_USER} />}
+        {/* 모바일은 코너를 맨 위(흐름)로 — order로 위치 */}
         <h1 className="hero-name">{user?.name || 'Zeter Bae'}</h1>
         <p className="hero-bio">
           {user?.bio?.replace(/\s+/g, ' ').trim() ||

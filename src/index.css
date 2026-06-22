@@ -76,16 +76,16 @@ a { color: inherit; text-decoration: none; }
   border-radius: 18px;
 }
 
-/* 상단 우측 — 방문 수 + 로그인 */
+/* 상단 우측 — 방문 수 + 로그인 (흐름 안에 배치, 겹침 방지) */
 .hero-corner {
-  position: absolute;
-  top: 14px;
-  right: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-left: auto;
 }
 .hero-visits {
   display: inline-flex;
@@ -154,6 +154,8 @@ a { color: inherit; text-decoration: none; }
   font-size: 28px;
   letter-spacing: -0.02em;
 }
+
+.hero-body { flex: 1; min-width: 0; }
 
 .hero-bio {
   margin: 4px 0 10px;
@@ -637,6 +639,14 @@ select:focus { border-color: var(--accent); }
   padding: 22px 18px;
 }
 .hero-m .hero-tags { justify-content: center; }
+/* 모바일: 코너를 맨 위 전체폭 중앙으로 (아바타와 겹침 방지) */
+.hero-m .hero-corner {
+  order: -1;
+  align-self: stretch;
+  justify-content: center;
+  margin-left: 0;
+}
+.hero-m .hero-body { flex: 0 1 auto; width: 100%; }
 
 /* 모바일 페이지 */
 .page-mobile .stats { grid-template-columns: repeat(2, 1fr); }
