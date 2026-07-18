@@ -11,6 +11,8 @@ const ViewerContext = createContext(() => {})
 
 const GH_USER = 'sanghakbae'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const GH_CACHE_KEY = `github-dashboard-cache:${GH_USER}`
+const GH_CACHE_TTL = 30 * 60 * 1000
 // 목록에서 숨길 리포
 const EXCLUDE = new Set(['sanghak-dashboard', 'muhayu', 'zeterbae'])
 
@@ -73,16 +75,39 @@ function useGitHub() {
 
   useEffect(() => {
     let alive = true
+    const readCache = () => {
+      try {
+        const cached = JSON.parse(localStorage.getItem(GH_CACHE_KEY) || 'null')
+        if (!cached?.data) return null
+        return cached
+      } catch {
+        return null
+      }
+    }
+    const writeCache = (nextData) => {
+      try {
+        localStorage.setItem(GH_CACHE_KEY, JSON.stringify({ data: nextData, savedAt: Date.now() }))
+      } catch { /* noop */ }
+    }
+    const cached = readCache()
+    if (cached?.data) {
+      setData(cached.data)
+      setState('ready')
+    }
     // background=true면 스켈레톤/에러로 전환하지 않고 조용히 갱신
     async function load(background = false) {
       try {
+        if (cached?.data && Date.now() - (cached.savedAt || 0) < GH_CACHE_TTL) return
         const [u, r] = await Promise.all([
           fetch(`https://api.github.com/users/${GH_USER}`),
           fetch(`https://api.github.com/users/${GH_USER}/repos?per_page=100&sort=updated`),
         ])
-        if (!u.ok || !r.ok) throw new Error(`GitHub API ${u.status}/${r.status}`)
-        const user = await u.json()
-        const repos = (await r.json()).filter(
+        const fallback = readCache()?.data
+        if (!u.ok && !fallback?.user) throw new Error(`GitHub API ${u.status}/${r.status}`)
+        if (!r.ok && !fallback?.repos?.length) throw new Error(`GitHub API ${u.status}/${r.status}`)
+        const user = u.ok ? await u.json() : fallback.user
+        const repoRows = r.ok ? await r.json() : fallback.repos
+        const repos = repoRows.filter(
           (x) => !x.fork && !x.archived && !EXCLUDE.has(x.name)
         )
 
@@ -94,7 +119,9 @@ function useGitHub() {
         } catch { /* noop */ }
 
         if (!alive) return
-        setData({ user, repos, contrib })
+        const nextData = { user, repos, contrib: contrib ?? fallback?.contrib ?? null }
+        setData(nextData)
+        writeCache(nextData)
         setState('ready')
       } catch (e) {
         if (!alive || background) return // 백그라운드 실패는 기존 데이터 유지
