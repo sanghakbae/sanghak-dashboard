@@ -7,6 +7,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // GitHub 응답 캐시: 누구나 읽기/갱신 (방문자 카운터와 동일 정책)
+    match /meta/ghCache {
+      allow read, write: if true;
+    }
+
     // 노출 설정(숨길 레포): 읽기는 공개, 쓰기는 관리자만
     match /meta/config {
       allow read: if true;

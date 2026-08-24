@@ -4,6 +4,7 @@ import { useAuth } from './useAuth.js'
 import { isAdmin } from './firebase.js'
 import { useHiddenRepos } from './useConfig.js'
 import { logEvent } from './audit.js'
+import { readGhCache, writeGhCache } from './ghCache.js'
 import AdminPage from './AdminPage.jsx'
 
 // 바로가기 → 사이트 미리보기 모달 열기 핸들러
@@ -11,7 +12,6 @@ const ViewerContext = createContext(() => {})
 
 const GH_USER = 'sanghakbae'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const GH_CACHE_KEY = `github-dashboard-cache:${GH_USER}`
 const GH_CACHE_TTL = 30 * 60 * 1000
 // 목록에서 숨길 리포
 const EXCLUDE = new Set(['sanghak-dashboard', 'muhayu', 'zeterbae'])
@@ -75,34 +75,25 @@ function useGitHub() {
 
   useEffect(() => {
     let alive = true
-    const readCache = () => {
-      try {
-        const cached = JSON.parse(localStorage.getItem(GH_CACHE_KEY) || 'null')
-        if (!cached?.data) return null
-        return cached
-      } catch {
-        return null
-      }
-    }
-    const writeCache = (nextData) => {
-      try {
-        localStorage.setItem(GH_CACHE_KEY, JSON.stringify({ data: nextData, savedAt: Date.now() }))
-      } catch { /* noop */ }
-    }
-    const cached = readCache()
-    if (cached?.data) {
-      setData(cached.data)
-      setState('ready')
-    }
+    // 예전 버전이 브라우저에 남긴 캐시 정리 (이제 Firestore만 사용)
+    try { localStorage.removeItem(`github-dashboard-cache:${GH_USER}`) } catch { /* noop */ }
+
     // background=true면 스켈레톤/에러로 전환하지 않고 조용히 갱신
     async function load(background = false) {
+      // 캐시는 Firestore(meta/ghCache)에 보관 — 브라우저 로컬 저장소를 쓰지 않는다
+      const cached = await readGhCache()
+      if (!alive) return
+      if (cached?.data && !background) {
+        setData(cached.data)
+        setState('ready')
+      }
       try {
-        if (cached?.data && Date.now() - (cached.savedAt || 0) < GH_CACHE_TTL) return
+        if (cached?.data && Date.now() - cached.savedAt < GH_CACHE_TTL) return
         const [u, r] = await Promise.all([
           fetch(`https://api.github.com/users/${GH_USER}`),
           fetch(`https://api.github.com/users/${GH_USER}/repos?per_page=100&sort=updated`),
         ])
-        const fallback = readCache()?.data
+        const fallback = cached?.data
         if (!u.ok && !fallback?.user) throw new Error(`GitHub API ${u.status}/${r.status}`)
         if (!r.ok && !fallback?.repos?.length) throw new Error(`GitHub API ${u.status}/${r.status}`)
         const user = u.ok ? await u.json() : fallback.user
@@ -121,10 +112,10 @@ function useGitHub() {
         if (!alive) return
         const nextData = { user, repos, contrib: contrib ?? fallback?.contrib ?? null }
         setData(nextData)
-        writeCache(nextData)
         setState('ready')
+        writeGhCache(nextData)
       } catch (e) {
-        if (!alive || background) return // 백그라운드 실패는 기존 데이터 유지
+        if (!alive || background || cached?.data) return // 캐시가 있으면 유지
         setError(e.message || '데이터를 불러오지 못했습니다.')
         setState('error')
       }
@@ -248,11 +239,18 @@ function LangDot({ lang }) {
 // 'auth-required' 토픽이 있으면 로그인 필요 서비스로 표시
 const AUTH_TOPIC = 'auth-required'
 
+// About의 Website 필드는 프로토콜 없이 저장될 수 있어(booker.sanghak.kr) https를 보충한다
+function liveUrl(repo) {
+  const h = (repo.homepage || '').trim()
+  if (!h) return null
+  return /^https?:\/\//i.test(h) ? h : `https://${h}`
+}
+
 // 최근 3시간 내 푸시 → 네온 테두리 강조
 const FRESH_MS = 3 * 60 * 60 * 1000
 
 function ProjectCard({ repo }) {
-  const live = repo.homepage && repo.homepage.startsWith('http') ? repo.homepage : null
+  const live = liveUrl(repo)
   const openViewer = useContext(ViewerContext)
   const needsAuth = (repo.topics || []).includes(AUTH_TOPIC)
   const topics = (repo.topics || []).filter((t) => t !== AUTH_TOPIC)
@@ -529,7 +527,7 @@ export default function App() {
   }, [repos, query, lang, sort, hidden])
 
   const liveCount = useMemo(
-    () => repos.filter((r) => r.homepage && r.homepage.startsWith('http')).length,
+    () => repos.filter((r) => liveUrl(r)).length,
     [repos]
   )
 
