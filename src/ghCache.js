@@ -31,11 +31,12 @@ export async function readGhCache() {
     const snap = await getDoc(ref)
     if (!snap.exists()) return null
     const { user, repos, contrib, savedAt, version } = snap.data()
-    if (version !== CACHE_VERSION) return null
     if (!user && !repos?.length) return null
     return {
       data: { user: user ?? null, repos: repos || [], contrib: contrib ?? null },
-      savedAt: savedAt || 0,
+      // 구버전 캐시도 화면 표시에는 사용하되 즉시 백그라운드 갱신을 시도한다.
+      // GitHub API가 제한된 상황에서도 기존 대시보드를 정상 표시할 수 있다.
+      savedAt: version === CACHE_VERSION ? (savedAt || 0) : 0,
     }
   } catch {
     return null // 캐시는 부가 기능 — 실패해도 원본 fetch로 진행
