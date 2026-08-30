@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from './firebase.js'
 
 const ref = doc(db, 'meta', 'ghCache')
+const CACHE_VERSION = 2
 
 // 화면에서 실제로 쓰는 필드만 저장 (원본 응답은 200KB대 → 문서 크기·전송량 절감)
 const slimUser = (u) => u && {
@@ -29,7 +30,8 @@ export async function readGhCache() {
   try {
     const snap = await getDoc(ref)
     if (!snap.exists()) return null
-    const { user, repos, contrib, savedAt } = snap.data()
+    const { user, repos, contrib, savedAt, version } = snap.data()
+    if (version !== CACHE_VERSION) return null
     if (!user && !repos?.length) return null
     return {
       data: { user: user ?? null, repos: repos || [], contrib: contrib ?? null },
@@ -43,6 +45,7 @@ export async function readGhCache() {
 export async function writeGhCache({ user, repos, contrib }) {
   try {
     await setDoc(ref, {
+      version: CACHE_VERSION,
       user: slimUser(user) ?? null,
       repos: (repos || []).map(slimRepo),
       contrib: contrib ?? null,

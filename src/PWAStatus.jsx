@@ -27,28 +27,44 @@ export default function PWAStatus() {
     // 개발 서버에는 서비스 워커를 등록하지 않아 기존 개발 흐름과 캐시를 방해하지 않는다.
     if (import.meta.env.PROD && 'serviceWorker' in navigator) {
       let refreshing = false
+      let registration = null
+      let updateTimer = null
       const onControllerChange = () => {
         // 최초 설치 때 clients.claim()이 발생해도 페이지를 갑자기 새로고침하지 않는다.
         if (!reloadForUpdate.current || refreshing) return
         refreshing = true
         window.location.reload()
       }
+      const checkForUpdate = () => registration?.update().catch(() => {})
+      const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible') checkForUpdate()
+      }
       navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
+      document.addEventListener('visibilitychange', onVisibilityChange)
 
-      navigator.serviceWorker.register('/sw.js').then((registration) => {
-        if (registration.waiting && navigator.serviceWorker.controller) setUpdateWorker(registration.waiting)
-        registration.addEventListener('updatefound', () => {
-          const worker = registration.installing
-          worker?.addEventListener('statechange', () => {
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then((nextRegistration) => {
+        registration = nextRegistration
+        const watchWorker = (worker) => {
+          if (!worker) return
+          const detectInstalledUpdate = () => {
             if (worker.state === 'installed' && navigator.serviceWorker.controller) setUpdateWorker(worker)
-          })
-        })
+          }
+          detectInstalledUpdate()
+          worker.addEventListener('statechange', detectInstalledUpdate)
+        }
+        if (registration.waiting && navigator.serviceWorker.controller) setUpdateWorker(registration.waiting)
+        watchWorker(registration.installing)
+        registration.addEventListener('updatefound', () => watchWorker(registration.installing))
+        checkForUpdate()
+        updateTimer = window.setInterval(checkForUpdate, 60 * 60 * 1000)
       }).catch(() => { /* PWA 지원 실패가 기존 페이지에 영향을 주지 않도록 무시 */ })
 
       return () => {
         window.removeEventListener('beforeinstallprompt', onInstallPrompt)
         window.removeEventListener('appinstalled', onInstalled)
         navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange)
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+        if (updateTimer) window.clearInterval(updateTimer)
       }
     }
 

@@ -18,8 +18,14 @@ export default function AdminPage({ user, onLogout, onExit }) {
   const [logs, setLogs] = useState([])
   const [loadingLogs, setLoadingLogs] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const hidden = useHiddenRepos()
-  const hiddenSet = useMemo(() => new Set(hidden), [hidden])
+  const [draftHidden, setDraftHidden] = useState(hidden)
+  const hiddenSet = useMemo(() => new Set(draftHidden), [draftHidden])
+
+  useEffect(() => {
+    setDraftHidden(hidden)
+  }, [hidden])
 
   // 전체 레포(숨김 포함) 로드 — 노출 토글용
   useEffect(() => {
@@ -44,9 +50,22 @@ export default function AdminPage({ user, onLogout, onExit }) {
   }, [])
 
   async function toggle(name) {
-    const next = hiddenSet.has(name) ? hidden.filter((n) => n !== name) : [...hidden, name]
+    if (saving) return
+    const previous = draftHidden
+    const next = hiddenSet.has(name) ? draftHidden.filter((n) => n !== name) : [...draftHidden, name]
+    setDraftHidden(next)
+    setSaveError('')
     setSaving(true)
-    try { await saveHiddenRepos(next) } finally { setSaving(false) }
+    try {
+      await saveHiddenRepos(next)
+    } catch (error) {
+      setDraftHidden(previous)
+      setSaveError(error.code === 'permission-denied'
+        ? '저장 권한이 없습니다. 관리자 계정으로 다시 로그인해 주세요.'
+        : `저장하지 못했습니다: ${error.message}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -66,13 +85,14 @@ export default function AdminPage({ user, onLogout, onExit }) {
       <section className="admin-card">
         <h2 className="admin-h2">레포지토리 노출 설정 {saving && <span className="admin-muted">저장 중…</span>}</h2>
         <p className="admin-muted">끄면 공개 대시보드에서 숨겨집니다. (실시간 반영)</p>
+        {saveError && <p className="admin-save-error" role="alert">{saveError}</p>}
         <div className="repo-list">
           {repos.map((r) => {
             const visible = !hiddenSet.has(r.name)
             return (
               <label key={r.id} className="repo-row">
                 <span className="repo-name">{r.name}</span>
-                <input type="checkbox" className="toggle" checked={visible} onChange={() => toggle(r.name)} />
+                <input type="checkbox" className="toggle" checked={visible} disabled={saving} onChange={() => toggle(r.name)} />
                 <span className={`toggle-state ${visible ? 'on' : 'off'}`}>{visible ? '노출' : '숨김'}</span>
               </label>
             )

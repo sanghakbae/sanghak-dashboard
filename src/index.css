@@ -30,6 +30,14 @@
 
 html, body, #root { margin: 0; min-height: 100%; }
 
+/* 홈 화면 앱의 노치·상태 표시줄 아래에서 콘텐츠가 잘리지 않도록 안전 영역 확보 */
+@media (display-mode: standalone) {
+  #root {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -553,7 +561,7 @@ select:focus { border-color: var(--accent); }
   align-items: center;
   gap: 12px;
   width: min(440px, calc(100vw - 32px));
-  margin: max(12px, env(safe-area-inset-top)) auto 0;
+  margin: 12px auto 0;
   padding: 12px;
   color: var(--text);
   background: rgba(19, 13, 34, 0.96);
@@ -766,9 +774,19 @@ select:focus { border-color: var(--accent); }
 }
 .repo-name { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .toggle { width: 36px; height: 20px; cursor: pointer; accent-color: var(--accent); }
+.toggle:disabled { cursor: wait; opacity: 0.65; }
 .toggle-state { font-size: 11px; font-weight: 700; width: 30px; text-align: right; }
 .toggle-state.on { color: var(--accent); }
 .toggle-state.off { color: var(--muted); }
+.admin-save-error {
+  margin: 10px 0 0;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--danger) 55%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  font-size: 12.5px;
+}
 
 .log-scroll { overflow-x: auto; margin-top: 12px; }
 .log-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }

@@ -13,9 +13,6 @@ const ViewerContext = createContext(() => {})
 const GH_USER = 'sanghakbae'
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const GH_CACHE_TTL = 30 * 60 * 1000
-// 목록에서 숨길 리포
-const EXCLUDE = new Set(['sanghak-dashboard', 'muhayu', 'zeterbae'])
-
 // GitHub 공식 언어 색상 (자주 쓰는 것만)
 const LANG_COLORS = {
   JavaScript: '#f1e05a',
@@ -98,9 +95,8 @@ function useGitHub() {
         if (!r.ok && !fallback?.repos?.length) throw new Error(`GitHub API ${u.status}/${r.status}`)
         const user = u.ok ? await u.json() : fallback.user
         const repoRows = r.ok ? await r.json() : fallback.repos
-        const repos = repoRows.filter(
-          (x) => !x.fork && !x.archived && !EXCLUDE.has(x.name)
-        )
+        // 노출 여부는 관리자 설정(useHiddenRepos)에서 한 곳으로만 제어한다.
+        const repos = repoRows.filter((x) => !x.fork && !x.archived)
 
         // 잔디는 별도 서비스 — 실패해도 나머지는 표시
         let contrib = null
