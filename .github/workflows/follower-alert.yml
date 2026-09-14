@@ -1,0 +1,35 @@
+name: Follower alert
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # 15분마다 새 팔로워 확인
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: follower-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/check-followers.mjs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WEBHOOK_URL: ${{ secrets.FOLLOWER_WEBHOOK_URL }}
+      - name: Commit snapshot
+        run: |
+          if [[ -n "$(git status --porcelain data/followers.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/followers.json
+            git commit -m "chore: update followers snapshot [skip ci]"
+            git push
+          fi

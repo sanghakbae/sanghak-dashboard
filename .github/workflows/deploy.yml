@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'data/followers.json' # 팔로워 스냅샷 커밋으로는 재배포하지 않음
   workflow_dispatch: {}
 
 permissions:
