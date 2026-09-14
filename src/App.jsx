@@ -500,35 +500,41 @@ export default function App() {
     logEvent('visit')
   }, [])
 
+  // 숨긴 레포를 제외한 '보이는' 레포 — 통계·언어·필터가 모두 이 기준을 쓴다(그리드와 일치)
+  const visibleRepos = useMemo(
+    () => repos.filter((r) => !hidden.includes(r.name)),
+    [repos, hidden]
+  )
+
   const languages = useMemo(() => {
-    const set = new Set(repos.map((r) => r.language).filter(Boolean))
+    const set = new Set(visibleRepos.map((r) => r.language).filter(Boolean))
     return ['전체', ...Array.from(set).sort()]
-  }, [repos])
+  }, [visibleRepos])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    let list = repos.filter((r) => {
+    let list = visibleRepos.filter((r) => {
       const matchQ =
         !q ||
         r.name.toLowerCase().includes(q) ||
         (r.description || '').toLowerCase().includes(q) ||
         (r.topics || []).some((t) => t.toLowerCase().includes(q))
-      return matchQ && (lang === '전체' || r.language === lang) && !hidden.includes(r.name)
+      return matchQ && (lang === '전체' || r.language === lang)
     })
     return [...list].sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name)
       if (sort === 'stars') return b.stargazers_count - a.stargazers_count
       return new Date(b.pushed_at) - new Date(a.pushed_at)
     })
-  }, [repos, query, lang, sort, hidden])
+  }, [visibleRepos, query, lang, sort])
 
   const liveCount = useMemo(
-    () => repos.filter((r) => liveUrl(r)).length,
-    [repos]
+    () => visibleRepos.filter((r) => liveUrl(r)).length,
+    [visibleRepos]
   )
 
   const stats = [
-    { num: repos.length, label: '프로젝트' },
+    { num: visibleRepos.length, label: '프로젝트' },
     { num: liveCount, label: '라이브 서비스' },
     { num: Math.max(0, languages.length - 1), label: '사용 언어' },
     { num: user?.followers ?? 0, label: '팔로워' },
